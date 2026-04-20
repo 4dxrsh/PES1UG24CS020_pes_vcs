@@ -134,12 +134,7 @@ int index_status(const Index *index) {
 //   - hex_to_hash                      : converting the parsed string to ObjectID
 //
 // Returns 0 on success, -1 on error.
-int index_load(Index *index) {
-    // TODO: Implement index loading
-    // (See Lab Appendix for logical steps)
-    (void)index;
-    return -1;
-}
+
 
 // Save the index to .pes/index atomically.
 //
@@ -151,25 +146,49 @@ int index_load(Index *index) {
 //   - rename                           : atomically moving the temp file over the old index
 //
 // Returns 0 on success, -1 on error.
-int index_save(const Index *index) {
-    // TODO: Implement atomic index saving
-    // (See Lab Appendix for logical steps)
-    (void)index;
-    return -1;
+static int compare_entries(const void *a, const void *b) {
+    return strcmp(((IndexEntry*)a)->path, ((IndexEntry*)b)->path);
+}
+int index_load(Index *index) {
+    if (!index) return -1;
+
+    index->count = 0;
+
+    FILE *fp = fopen(".pes/index", "r");
+    if (!fp) {
+        return 0; // empty index is valid
+    }
+
+    char mode_str[16], hash_hex[65], path[256];
+    long mtime;
+    size_t size;
+
+    while (1) {
+        int ret = fscanf(fp, "%15s %64s %ld %zu %255s",
+                         mode_str, hash_hex, &mtime, &size, path);
+
+        if (ret == EOF) break;
+        if (ret != 5) {
+            fclose(fp);
+            return -1;
+        }
+
+        if (index->count >= MAX_INDEX_ENTRIES) {
+            fclose(fp);
+            return -1;
+        }
+
+        IndexEntry *e = &index->entries[index->count++];
+
+        e->mode = strtol(mode_str, NULL, 8);
+        hex_to_hash(hash_hex, &e->hash);
+        e->mtime_sec = mtime;
+        e->size = size;
+        strcpy(e->path, path);
+    }
+
+    fclose(fp);
+    return 0;
 }
 
-// Stage a file for the next commit.
-//
-// HINTS - Useful functions and syscalls:
-//   - fopen, fread, fclose             : reading the target file's contents
-//   - object_write                     : saving the contents as OBJ_BLOB
-//   - stat / lstat                     : getting file metadata (size, mtime, mode)
-//   - index_find                       : checking if the file is already staged
-//
-// Returns 0 on success, -1 on error.
-int index_add(Index *index, const char *path) {
-    // TODO: Implement file staging
-    // (See Lab Appendix for logical steps)
-    (void)index; (void)path;
-    return -1;
-}
+
