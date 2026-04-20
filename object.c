@@ -261,7 +261,7 @@ int object_read(const ObjectID *id, ObjectType *type_out, void **data_out, size_
         free(buffer);
         return -1;
     }
-//
+//.
     memcpy(data, buffer + header_len, data_len);
 
     *data_out = data;
