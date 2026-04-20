@@ -242,7 +242,7 @@ int object_read(const ObjectID *id, ObjectType *type_out, void **data_out, size_
     size_t header_len = data_start - buffer + 1;
     char type_str[10];
     size_t data_len;
-
+//
     // Parse header
     sscanf(buffer, "%s %zu", type_str, &data_len);
 
