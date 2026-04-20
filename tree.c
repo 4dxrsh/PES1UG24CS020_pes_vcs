@@ -131,39 +131,7 @@ int tree_serialize(const Tree *tree, void **data_out, size_t *len_out) {
 // Returns 0 on success, -1 on error.
 
 int tree_from_index(ObjectID *id_out) {
-#ifdef TEST_TREE
-    // test_tree does not use index, so just return dummy success
     (void)id_out;
-    return 0;
-#else
-    // Actual implementation (used later in commit phase)
-    Index idx;
-    if (index_load(&idx) != 0) return -1;
-
-    // For now, simple flat tree (no recursion yet)
-    Tree tree = {0};
-
-    for (int i = 0; i < idx.count; i++) {
-        TreeEntry *e = &tree.entries[tree.count++];
-        e->mode = idx.entries[i].mode;
-        strcpy(e->name, idx.entries[i].path);
-        e->hash = idx.entries[i].hash;
-    }
-
-    void *data;
-    size_t len;
-    if (tree_serialize(&tree, &data, &len) != 0) return -1;
-
-    if (object_write(OBJ_TREE, data, len, id_out) != 0) {
-        free(data);
-        return -1;
-    }
-
-    free(data);
-    return 0;
-#endif
-
-//,.
+    return -1;
 }
-//
 
